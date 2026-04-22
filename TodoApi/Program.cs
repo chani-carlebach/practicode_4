@@ -31,6 +31,9 @@ builder.Services.AddDbContext<ToDoDbContext>(options =>
     options.UseMySql(connectionString, ServerVersion.AutoDetect(connectionString)));
 var app = builder.Build();
 app.UseCors("AllowAll");
+
+app.MapGet("/",  async () => "api is running");
+
     // 1. שליפת כל המשימות - GET
 app.MapGet("/items", async (ToDoDbContext db) => 
     await db.Items.ToListAsync());
@@ -65,4 +68,6 @@ app.MapDelete("/items/{id}", async (ToDoDbContext db, int id) => {
     }
     return Results.NotFound();
 });
+
+
 app.Run();

@@ -1,22 +1,24 @@
-# שלב 1: בניית האפליקציה (Build)
-FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
-WORKDIR /src
-
-# העתקת קובץ הפרויקט ושחזור חבילות
-COPY ["TodoApi.csproj", "./"]
-RUN dotnet restore "TodoApi.csproj"
-
-# העתקת כל שאר הקבצים ובנייה
-COPY . .
-RUN dotnet publish "TodoApi.csproj" -c Release -o /app/publish
-
-# שלב 2: הרצה (Runtime)
-FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS final
+FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base
 WORKDIR /app
-COPY --from=build /app/publish .
+EXPOSE 80
+EXPOSE 433
 
-# חשיפת הפורט שהאפליקציה משתמשת בו
-EXPOSE 8080
-ENV ASPNETCORE_URLS=http://+:8080
+ENV ASPNETCORE_URLS=http://+:80
 
+FROM --platform=$BUILDPLATFORM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+ARG configuration=Release
+WORKDIR /src
+COPY ["TodoApi/TodoApi.csproj", "TodoApi/"]
+RUN dotnet restore "TodoApi/TodoApi.csproj"
+COPY . .
+WORKDIR "/src/TodoApi"
+RUN dotnet build "TodoApi.csproj" -c $configuration -o /app/build
+
+FROM build AS publish
+ARG configuration=Release
+RUN dotnet publish "TodoApi.csproj" -c $configuration -o /app/publish /p:UseAppHost=false
+
+FROM base AS final
+WORKDIR /app
+COPY --from=publish /app/publish .
 ENTRYPOINT ["dotnet", "TodoApi.dll"]
