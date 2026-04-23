@@ -1,9 +1,9 @@
 import axios from 'axios';
 
 // 1. הגדרת כתובת ה-API כברירת מחדל (Config Defaults)
-axios.defaults.baseURL = "http://localhost:5052";
-
-// 2. הוספת Interceptor לתפיסת שגיאות ב-Response ורישום ללוג
+// הוא ינסה לקחת מהענן, ואם לא ימצא (במחשב שלך) הוא ילך ל-localhost
+const apiUrl = process.env.REACT_APP_API_URL || "http://localhost:5052";
+axios.defaults.baseURL = apiUrl// 2. הוספת Interceptor לתפיסת שגיאות ב-Response ורישום ללוג
 axios.interceptors.response.use(
     response => response, // אם התגובה תקינה, פשוט תחזיר אותה
     error => {
